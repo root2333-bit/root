@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>机械工程师的储物间</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
+<style>
+:root {
+--bg:#f5f7fa;--card-bg:#fff;--text:#2d3748;--text-secondary:#718096;--border:#e2e8f0;
+--primary:#3182ce;--primary-light:#ebf8ff;--hover:#edf2f7;--sidebar-bg:#fff;
+--shadow:0 4px 6px -1px rgba(0,0,0,0.1),0 2px 4px -1px rgba(0,0,0,0.06);
+--shadow-lg:0 10px 15px -3px rgba(0,0,0,0.1),0 4px 6px -2px rgba(0,0,0,0.05);
+--danger:#e53e3e;--danger-light:#fed7d7;--success:#38a169;--success-light:#c6f6d5;
+--warning:#dd6b20;--warning-light:#feebc8;
+}
+[data-theme="dark"] {
+--bg:#1a202c;--card-bg:#2d3748;--text:#e2e8f0;--text-secondary:#a0aec0;--border:#4a5568;
+--primary:#63b3ed;--primary-light:#2c5282;--hover:#4a5568;--sidebar-bg:#171923;
+--shadow:0 4px 6px -1px rgba(0,0,0,0.3),0 2px 4px -1px rgba(0,0,0,0.2);
+--shadow-lg:0 10px 15px -3px rgba(0,0,0,0.4),0 4px 6px -2px rgba(0,0,0,0.3);
+--danger:#fc8181;--danger-light:#742a2a;--success:#68d391;--success-light:#22543d;
+--warning:#f6ad55;--warning-light:#744210;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;transition:background .3s,color .3s;height:100vh;overflow:hidden}
+.app{display:flex;height:100vh}
+.sidebar{width:300px;background:var(--sidebar-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;transition:background .3s}
+.sidebar-header{padding:20px;border-bottom:1px solid var(--border)}
+.sidebar-header h1{font-size:1.2rem;display:flex;align-items:center;gap:8px}
+.sidebar-header p{font-size:.75rem;color:var(--text-secondary);margin-top:4px}
+.search-box{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:.9rem;background:var(--bg);color:var(--text);outline:none;margin-top:12px;transition:all .2s}
+.search-box:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(49,130,206,.15)}
+.category-list{flex:1;overflow-y:auto;padding:8px;position:relative}
+.nav-indicator{position:absolute;left:8px;right:8px;border-radius:8px;background:var(--primary-light);z-index:0;pointer-events:none}
+.category-item{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:8px;cursor:pointer;transition:all .2s;margin-bottom:4px;position:relative}
+.category-item:hover{background:var(--hover)}
+.category-item.active{background:transparent;color:var(--primary);font-weight:600}
+.category-item .cat-icon{font-size:1.2rem;width:28px;text-align:center}
+.category-item .cat-name{flex:1;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.category-item .cat-count{font-size:.75rem;background:var(--bg);color:var(--text-secondary);padding:2px 8px;border-radius:10px;min-width:24px;text-align:center}
+.category-item.active .cat-count{background:rgba(49,130,206,.15);color:var(--primary)}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.theme-toggle{background:none;border:1px solid var(--border);border-radius:6px;padding:6px 10px;cursor:pointer;color:var(--text);font-size:.85rem;transition:all .2s}
+.theme-toggle:hover{background:var(--hover)}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.main-header{padding:20px 28px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.main-header h2{font-size:1.4rem;display:flex;align-items:center;gap:10px}
+.main-header .header-actions{display:flex;gap:10px}
+.main-content{flex:1;overflow-y:auto;padding:24px 28px;transition:opacity .22s cubic-bezier(.4,0,.2,1),transform .38s cubic-bezier(.175,.885,.32,1.275)}
+.main-content.switching{opacity:0;transform:translateX(14px)}
+.links-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.link-card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:20px;text-decoration:none;color:inherit;transition:all .3s;display:flex;align-items:flex-start;gap:12px;box-shadow:var(--shadow);cursor:pointer;position:relative}
+.link-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--primary)}
+.link-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.link-info{flex:1;min-width:0}
+.link-name{font-weight:600;font-size:1rem;margin-bottom:4px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.link-desc{font-size:.85rem;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.link-arrow{color:var(--text-secondary);opacity:0;transition:opacity .3s;font-size:1.2rem}
+.link-card:hover .link-arrow{opacity:1}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-secondary)}
+.empty-state-icon{font-size:3rem;margin-bottom:16px}
+.edit-btn,.delete-btn,.add-btn,.save-btn,.cancel-btn{border:none;border-radius:6px;padding:5px 8px;cursor:pointer;font-size:.75rem;transition:all .2s;display:inline-flex;align-items:center;gap:4px}
+.edit-btn{background:var(--primary-light);color:var(--primary)}.edit-btn:hover{opacity:.8}
+.delete-btn{background:var(--danger-light);color:var(--danger)}.delete-btn:hover{opacity:.8}
+.add-btn{background:var(--success-light);color:var(--success);font-weight:600}
+.add-btn:hover{opacity:.8}
+.save-btn{background:var(--success-light);color:var(--success);font-weight:600;padding:8px 16px}
+.cancel-btn{background:var(--hover);color:var(--text-secondary);padding:8px 16px}
+.edit-actions{display:none;gap:6px}
+.edit-mode .edit-actions{display:flex}
+.edit-mode .category-item{padding-right:8px}
+.link-card-actions{display:none;position:absolute;top:8px;right:8px;gap:4px}
+.edit-mode .link-card-actions{display:flex}
+.cat-actions{display:none;gap:4px}
+.edit-mode .cat-actions{display:flex}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px)}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card-bg);border-radius:16px;padding:28px;width:90%;max-width:420px;box-shadow:var(--shadow-lg);animation:modalIn .3s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.modal h3{margin-bottom:20px;font-size:1.2rem}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:.85rem;color:var(--text-secondary);margin-bottom:6px}
+.form-group input,.form-group select{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:.95rem;background:var(--bg);color:var(--text);outline:none;transition:all .2s}
+.form-group input:focus,.form-group select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(49,130,206,.15)}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.edit-banner{display:none;background:linear-gradient(90deg,var(--warning-light),var(--warning));color:#744210;padding:10px 20px;font-size:.9rem;font-weight:600;align-items:center;justify-content:space-between}
+[data-theme="dark"] .edit-banner{color:var(--warning-light)}
+.edit-mode .edit-banner{display:flex}
+.export-btn{background:var(--card-bg);border:1px solid var(--border);border-radius:6px;padding:6px 12px;cursor:pointer;color:var(--text);font-size:.85rem;transition:all .2s}
+.export-btn:hover{background:var(--hover)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-secondary)}
+@media(max-width:768px){.sidebar{width:240px}.links-grid{grid-template-columns:1fr}.main-header{padding:16px 20px}.main-content{padding:16px 20px}}
+@media(max-width:560px){.sidebar{position:fixed;left:-300px;top:0;bottom:0;z-index:200;transition:left .3s}.sidebar.open{left:0}.menu-toggle{display:block!important}}
+.menu-toggle{display:none;background:none;border:1px solid var(--border);border-radius:6px;padding:6px 10px;cursor:pointer;color:var(--text);font-size:1rem}
+</style>
+</head>
+<body>
+<div class="edit-banner" id="editBanner">
+<span>🛠️ 编辑模式 — 所有修改已自动保存到浏览器</span>
+<div style="display:flex;gap:10px;">
+<button class="export-btn" onclick="exportHTML()">💾 导出HTML文件</button>
+<button class="cancel-btn" onclick="exitEditMode()">退出编辑</button>
+</div>
+</div>
+<div class="app" id="app">
+<aside class="sidebar" id="sidebar">
+<div class="sidebar-header">
+<h1><span id="gearIcon" style="cursor:pointer;user-select:none">⚙️</span> 储物间</h1>
+<p>机械工程师的个人导航</p>
+<input type="text" class="search-box" id="searchBox" placeholder="🔍 搜索资源...">
+</div>
+<div class="category-list" id="categoryList"><div class="nav-indicator" id="navIndicator" style="top:0;height:0;opacity:0"></div></div>
+<div class="sidebar-footer">
+<button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
+</div>
+</aside>
+<main class="main">
+<div class="main-header">
+<button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+<h2 id="mainTitle">📐 选择一个分类</h2>
+<div class="header-actions" id="headerActions"></div>
+</div>
+<div class="main-content" id="mainContent">
+<div class="empty-state">
+<div class="empty-state-icon">👈</div>
+<h3>请在左侧选择一个分类</h3>
+<p>点击左侧菜单查看该分类下的资源链接</p>
+</div>
+</div>
+</main>
+</div>
+<div class="modal-overlay" id="loginModal">
+<div class="modal">
+<h3 id="loginTitle">🔐 进入编辑模式</h3>
+<div class="form-group">
+<label>账号</label>
+<input type="text" id="loginUser" placeholder="输入账号" value="admin">
+</div>
+<div class="form-group">
+<label>密码</label>
+<input type="password" id="loginPass" placeholder="输入密码">
+</div>
+<p id="loginError" style="color:var(--danger);font-size:0.85rem;margin-bottom:10px;display:none">账号或密码错误</p>
+<div class="modal-actions">
+<button class="cancel-btn" onclick="closeModal('loginModal')">取消</button>
+<button class="save-btn" onclick="doLogin()">进入</button>
+</div>
+</div>
+</div>
+<div class="modal-overlay" id="catModal">
+<div class="modal">
+<h3 id="catModalTitle">编辑分类</h3>
+<div class="form-group">
+<label>分类名称</label>
+<input type="text" id="catNameInput" placeholder="如：CAD / 三维建模">
+</div>
+<div class="form-group">
+<label>图标</label>
+<input type="text" id="catIconInput" placeholder="如：📐">
+</div>
+<div class="modal-actions">
+<button class="cancel-btn" onclick="closeModal('catModal')">取消</button>
+<button class="save-btn" onclick="saveCategory()">保存</button>
+</div>
+</div>
+</div>
+<div class="modal-overlay" id="linkModal">
+<div class="modal">
+<h3 id="linkModalTitle">编辑链接</h3>
+<div class="form-group">
+<label>名称</label>
+<input type="text" id="linkNameInput" placeholder="如：SolidWorks">
+</div>
+<div class="form-group">
+<label>描述</label>
+<input type="text" id="linkDescInput" placeholder="如：主流三维机械设计软件官网">
+</div>
+<div class="form-group">
+<label>网址</label>
+<input type="text" id="linkUrlInput" placeholder="https://...">
+</div>
+<div class="form-group">
+<label>图标</label>
+<input type="text" id="linkIconInput" placeholder="如：🔷">
+</div>
+<div class="form-group">
+<label>背景色</label>
+<select id="linkColorInput">
+<option value="#e3f2fd">浅蓝</option>
+<option value="#ffebee">浅红</option>
+<option value="#fff3e0">浅橙</option>
+<option value="#e8f5e9">浅绿</option>
+<option value="#f3e5f5">浅紫</option>
+<option value="#fce4ec">浅粉</option>
+<option value="#fffde7">浅黄</option>
+<option value="#e0f7fa">浅青</option>
+<option value="#f5f5f5">浅灰</option>
+<option value="#e8eaf6">浅靛</option>
+</select>
+</div>
+<div class="modal-actions">
+<button class="cancel-btn" onclick="closeModal('linkModal')">取消</button>
+<button class="save-btn" onclick="saveLink()">保存</button>
+</div>
+</div>
+</div>
+<script>
+// ===================== 默认数据（导出时会替换此部分） =====================
+const DEFAULT_CATEGORIES = [
+{id:"fasta",name:"标准件选型",icon:"📦",links:[
+{name:"怡合达",desc:"国内最大FA工厂自动化零件平台",icon:"🏭",color:"#e3f2fd",url:"https://www.yhdfa.com"},
+{name:"米思米",desc:"FA标准件/模具零件/工具采购",icon:"📐",color:"#fce4ec",url:"https://www.misumi.com.cn"},
+{name:"爱安特",desc:"工厂自动化零部件一站式平台",icon:"🔧",color:"#e8f5e9",url:"https://www.ianter.com"},
+{name:"嘉立创FA",desc:"零件采购+钣金加工+3D打印",icon:"⚡",color:"#fff3e0",url:"https://www.jlc-fa.com"},
+{name:"淘宝工业品",desc:"各类非标标准件现货采购",icon:"🛒",color:"#f3e5f5",url:"https://www.taobao.com/markets/industry"},
+{name:"McMaster-Carr",desc:"美国工业零部件目录",icon:"📋",color:"#e0f7fa",url:"https://www.mcmaster.com"}
+]},
+{id:"pneumatic",name:"气动/液压元件",icon:"💨",links:[
+{name:"SMC中国",desc:"气动元件龙头品牌",icon:"🇯🇵",color:"#e3f2fd",url:"https://www.smc.com.cn"},
+{name:"Festo",desc:"德国气动/电驱动技术",icon:"🇩🇪",color:"#fffde7",url:"https://www.festo.com.cn"},
+{name:"亚德客",desc:"国产气动元件知名品牌",icon:"🇨🇳",color:"#ffebee",url:"https://www.airtac.com"},
+{name:"气立可",desc:"台湾气动元件厂商",icon:"🏭",color:"#e8f5e9",url:"https://www.chelic.com"},
+{name:"SMC 2D/3D CAD",desc:"SMC产品选型与模型下载",icon:"📐",color:"#e0f7fa",url:"https://www.smcworld.com"},
+{name:"Parker汉尼汾",desc:"液压/气动/密封件",icon:"🔵",color:"#e8eaf6",url:"https://www.parker.com"}
+]},
+{id:"motor",name:"电机/驱动/控制",icon:"⚡",links:[
+{name:"汇川技术",desc:"国产伺服/PLC/变频器龙头",icon:"🇨🇳",color:"#e8f5e9",url:"https://www.inovance.com"},
+{name:"安川电机",desc:"伺服电机/运动控制",icon:"🇯🇵",color:"#e3f2fd",url:"https://www.yaskawa.com.cn"},
+{name:"松下电机",desc:"伺服/减速机/传感器",icon:"🏭",color:"#fce4ec",url:"https://device.panasonic.cn"},
+{name:"三菱电机FA",desc:"PLC/伺服/变频器",icon:"🔷",color:"#fff3e0",url:"https://www.mitsubishielectric-fa.cn"},
+{name:"雷赛智能",desc:"国产步进/伺服/运动控制卡",icon:"⚡",color:"#f5f5f5",url:"https://www.leisai.com"},
+{name:"台达",desc:"伺服/PLC/变频器/HMI",icon:"🇨🇳",color:"#e0f7fa",url:"https://www.deltaww.com/zh-CN/products"}
+]},
+{id:"sensor",name:"传感器/机器视觉",icon:"👁️",links:[
+{name:"基恩士",desc:"传感器/视觉/测量仪器",icon:"🇯🇵",color:"#e8eaf6",url:"https://www.keyence.com.cn"},
+{name:"欧姆龙FA",desc:"传感器/PLC/安全器件",icon:"🟢",color:"#e8f5e9",url:"https://www.fa.omron.com.cn"},
+{name:"西克SICK",desc:"工业传感器/安全系统",icon:"🇩🇪",color:"#fffde7",url:"https://www.sick.com/cn"},
+{name:"海康机器人",desc:"机器视觉/工业相机/读码器",icon:"📷",color:"#e3f2fd",url:"https://www.hikrobotics.com/cn"},
+{name:"康耐视",desc:"机器视觉/读码/深度学习",icon:"👁️",color:"#e0f7fa",url:"https://www.cognex.cn"},
+{name:"邦纳Banner",desc:"光电/超声波/安全传感器",icon:"🇺🇸",color:"#ffebee",url:"https://www.bannerengineering.com/cn"}
+]},
+{id:"transmission",name:"传动件",icon:"⚙️",links:[
+{name:"THK",desc:"直线导轨/滚珠丝杠",icon:"🇯🇵",color:"#e3f2fd",url:"https://www.thk.com/cn"},
+{name:"上银HIWIN",desc:"滚珠丝杠/直线导轨/轴承",icon:"🇨🇳",color:"#e8f5e9",url:"https://www.hiwin.cn"},
+{name:"NSK",desc:"轴承/滚珠丝杠/直线导轨",icon:"🇯🇵",color:"#fce4ec",url:"https://www.nsk.com.cn"},
+{name:"TBI MOTION",desc:"滚珠丝杠/线性滑轨",icon:"🇨🇳",color:"#fff3e0",url:"https://www.tbimotion.com.cn"},
+{name:"新宝谐波",desc:"谐波减速机/行星减速机",icon:"⚙️",color:"#f5f5f5",url:"https://www.shimpo-china.com"},
+{name:"兆威机电",desc:"微型驱动系统/微型减速箱",icon:"🔩",color:"#e0f7fa",url:"https://www.zhaowei.cn"}
+]},
+{id:"profile",name:"铝型材/框架",icon:"🏗️",links:[
+{name:"怡合达铝型材",desc:"工业铝型材及配件",icon:"📦",color:"#e8f5e9",url:"https://www.yhdfa.com"},
+{name:"米思米铝型材",desc:"铝型材框架/连接件",icon:"📐",color:"#fce4ec",url:"https://www.misumi.com.cn"},
+{name:"工业铝型材网",desc:"铝型材技术资料与选型",icon:"📋",color:"#e0f7fa",url:"http://www.alu.cn"},
+{name:"精益管/线棒",desc:"柔性管/精益生产配件",icon:"🔧",color:"#f3e5f5",url:"https://www.leanpipe.com"},
+{name:"铝型材计算器",desc:"铝型材强度/承重计算工具",icon:"🧮",color:"#fffde7",url:"https://www.engineeringtoolbox.com"},
+{name:"型材截面特性",desc:"各类型材截面参数查询",icon:"📊",color:"#e8eaf6",url:"https://www.engineeringtoolbox.com/area-moment-inertia-d_1328.html"}
+]},
+{id:"cad",name:"CAD/设计工具",icon:"📐",links:[
+{name:"SolidWorks",desc:"非标设计最主流三维软件",icon:"🔷",color:"#e3f2fd",url:"https://www.solidworks.com"},
+{name:"中望3D",desc:"国产三维CAD",icon:"🇨🇳",color:"#ffebee",url:"https://www.zwsoft.cn/product/zw3d.html"},
+{name:"AutoCAD",desc:"二维出图/方案布置",icon:"✏️",color:"#fff3e0",url:"https://www.autodesk.com/products/autocad"},
+{name:"迈迪工具集",desc:"SolidWorks插件/标准件库",icon:"🔧",color:"#e8f5e9",url:"https://www.maidijg.com"},
+{name:"今日制造",desc:"SolidWorks插件/外购件库",icon:"⚙️",color:"#f5f5f5",url:"https://www.jrzz.com.cn"},
+{name:"TraceParts",desc:"免费3D零部件模型下载",icon:"📐",color:"#e0f7fa",url:"https://www.traceparts.cn"}
+]},
+{id:"calc",name:"设计辅助计算",icon:"🧮",links:[
+{name:"迈迪凸轮设计",desc:"盘形凸轮/圆柱凸轮设计",icon:"📐",color:"#fff3e0",url:"https://www.maidijg.com"},
+{name:"齿轮参数计算",desc:"齿轮模数/齿数/强度计算",icon:"⚙️",color:"#e3f2fd",url:"https://www.woodgears.ca/gear_cutting/template.html"},
+{name:"KHK齿轮计算",desc:"日本KHK齿轮技术计算",icon:"🇯🇵",color:"#fce4ec",url:"https://www.khkgears.co.jp/gear_technology/gear_calculator.html"},
+{name:"丝杠选型计算",desc:"滚珠丝杠寿命/精度/负载",icon:"🔩",color:"#e8f5e9",url:"https://www.thk.com/cn/products/selection.html"},
+{name:"气缸选型计算",desc:"SMC气缸出力/速度/耗气量",icon:"💨",color:"#e0f7fa",url:"https://www.smcworld.com"},
+{name:"电机选型计算",desc:"伺服/步进电机转矩惯量计算",icon:"⚡",color:"#fffde7",url:"https://www.yaskawa.com.cn/support/calculation.html"}
+]},
+{id:"community",name:"学习/社区/招聘",icon:"📚",links:[
+{name:"机械社区",desc:"非标自动化/机械设计交流",icon:"💬",color:"#e0f7fa",url:"https://www.jixie.net"},
+{name:"开拔网",desc:"SolidWorks资源/非标资料",icon:"📂",color:"#e3f2fd",url:"https://www.kabasan.com"},
+{name:"B站非标自动化",desc:"非标设备设计视频教程",icon:"📺",color:"#fce4ec",url:"https://search.bilibili.com/all?keyword=非标自动化设计"},
+{name:"知乎-机械设计",desc:"非标设计经验分享",icon:"❓",color:"#e8f6",url:"https://www.zhihu.com/topic/19550228"},
+{name:"BOSS直聘-机械",desc:"非标机械设计岗位",icon:"💼",color:"#e8f5e9",url:"https://www.zhipin.com/web/geek/job?query=非标机械设计"},
+{name:"智联招聘-机械",desc:"自动化设备工程师岗位",icon:"💼",color:"#fff3e0",url:"https://www.zhaopin.com"}
+]}
+];
+// ===================== 数据结束 =====================
+
+// ===================== 弹簧物理导航指示器 =====================
+class SpringIndicator{
+constructor(el){
+this.el=el;this.y=0;this.vy=0;this.targetY=0;this.targetH=0;this.h=0;
+this.stiffness=280;this.damping=18;this.mass=1;this.running=false;
+}
+moveTo(y,h){
+this.targetY=y;this.targetH=h;
+if(!this.running){this.running=true;this.animate();}
+}
+animate(){
+const steps=10,dt=1/60/steps;
+for(let i=0;i<steps;i++){
+const fy=-this.stiffness*(this.y-this.targetY);
+const ay=fy/this.mass-this.damping*this.vy;
+this.vy+=ay*dt;this.y+=this.vy*dt;
+const fh=-this.stiffness*(this.h-this.targetH);
+const ah=fh/this.mass-this.damping*this.vyH||0;
+if(!this.vyH)this.vyH=0;
+this.vyH+=ah*dt;this.h+=this.vyH*dt;
+}
+this.el.style.top=this.y+'px';
+this.el.style.height=this.h+'px';
+this.el.style.opacity=1;
+if(Math.abs(this.vy)<0.2&&Math.abs(this.y-this.targetY)<0.3&&Math.abs(this.vyH)<0.2&&Math.abs(this.h-this.targetH)<0.3){
+this.y=this.targetY;this.h=this.targetH;this.vy=0;this.vyH=0;
+this.el.style.top=this.y+'px';this.el.style.height=this.h+'px';this.running=false;return;
+}
+requestAnimationFrame(()=>this.animate());
+}
+}
+let springIndicator=null;
+function updateIndicator(){
+const list=document.getElementById('categoryList');
+const active=list.querySelector('.category-item.active');
+const ind=document.getElementById('navIndicator');
+if(!active||!ind)return;
+if(!springIndicator)springIndicator=new SpringIndicator(ind);
+const pad=8;
+springIndicator.moveTo(active.offsetTop-pad,active.offsetHeight);
+}
+// ===================== 弹簧结束 =====================
+
+let categories=[],activeCategory=null,isEditMode=false,editingCatId=null,editingLinkIdx=null,searchQuery='';
+
+function init(){loadData();renderSidebar();setupEvents();restoreTheme()}
+function loadData(){const s=localStorage.getItem('nav_data');categories=s?JSON.parse(s):JSON.parse(JSON.stringify(DEFAULT_CATEGORIES))}
+function saveData(){localStorage.setItem('nav_data',JSON.stringify(categories))}
+
+function renderSidebar(){
+const list=document.getElementById('categoryList');
+const ind=list.querySelector('.nav-indicator');
+const filtered=categories.filter(cat=>{if(!searchQuery)return true;const q=searchQuery.toLowerCase();if(cat.name.toLowerCase().includes(q))return true;return cat.links.some(l=>(l.name+' '+l.desc).toLowerCase().includes(q))});
+list.innerHTML=filtered.map(cat=>`<div class="category-item ${activeCategory===cat.id?'active':''}" onclick="selectCategory('${cat.id}')" data-cat-id="${cat.id}"><span class="cat-icon">${cat.icon}</span><span class="cat-name">${cat.name}</span>${!isEditMode?`<span class="cat-count">${cat.links.length}</span>`:''}<div class="cat-actions"><button class="edit-btn" onclick="event.stopPropagation();editCategory('${cat.id}')">✏️</button><button class="delete-btn" onclick="event.stopPropagation();deleteCategory('${cat.id}')">🗑️</button></div></div>`).join('');
+if(isEditMode){const add=document.createElement('div');add.className='category-item';add.style='border:2px dashed var(--border);justify-content:center;color:var(--text-secondary)';add.innerHTML='<span>➕ 添加分类</span>';add.onclick=()=>addCategory();list.appendChild(add)}
+if(ind)list.insertBefore(ind,list.firstChild);
+setTimeout(updateIndicator,0);
+}
+
+function renderMain(){
+const content=document.getElementById('mainContent'),title=document.getElementById('mainTitle'),actions=document.getElementById('headerActions');
+if(!activeCategory){title.innerHTML='📐 选择一个分类';content.innerHTML='<div class="empty-state"><div class="empty-state-icon">👈</div><h3>请在左侧选择一个分类</h3><p>点击左侧菜单查看该分类下的资源链接</p></div>';actions.innerHTML='';return}
+const cat=categories.find(c=>c.id===activeCategory);if(!cat)return;
+title.innerHTML=`${cat.icon} ${cat.name}`;
+actions.innerHTML=isEditMode?'<button class="add-btn" onclick="addLink()">➕ 添加链接</button>':'';
+const filtered=cat.links.filter(link=>{if(!searchQuery)return true;return(link.name+' '+link.desc).toLowerCase().includes(searchQuery.toLowerCase())});
+if(filtered.length===0){content.innerHTML='<div class="empty-state"><div class="empty-state-icon">🔍</div><h3>没有找到匹配的链接</h3><p>尝试其他关键词，或添加新链接</p></div>';return}
+content.innerHTML='<div class="links-grid">'+filtered.map((link,idx)=>{const realIdx=cat.links.indexOf(link);return`<a href="${link.url}" target="_blank" class="link-card"><div class="link-icon" style="background:${link.color}">${link.icon}</div><div class="link-info"><div class="link-name">${link.name}</div><div class="link-desc">${link.desc}</div></div><span class="link-arrow">→</span><div class="link-card-actions"><button class="edit-btn" onclick="event.preventDefault();event.stopPropagation();editLink(${realIdx})">✏️</button><button class="delete-btn" onclick="event.preventDefault();event.stopPropagation();deleteLink(${realIdx})">🗑️</button></div></a>`}).join('')+'</div>';
+}
+
+function selectCategory(id){
+const content=document.getElementById('mainContent');
+content.classList.add('switching');
+setTimeout(()=>{
+activeCategory=id;
+renderSidebar();
+renderMain();
+content.classList.remove('switching');
+setTimeout(updateIndicator,0);
+},120);
+}
+function setupEvents(){
+document.getElementById('gearIcon').addEventListener('dblclick',function(e){e.stopPropagation();if(isEditMode)return;openLogin()});
+document.getElementById('searchBox').addEventListener('input',function(e){searchQuery=e.target.value.trim();renderSidebar();if(activeCategory)renderMain()});
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',function(e){if(e.target===this)this.classList.remove('show')}));
+}
+
+function openLogin(){const has=localStorage.getItem('admin_pass');document.getElementById('loginTitle').textContent=has?'🔐 进入编辑模式':'🔐 首次使用，请设置密码';document.getElementById('loginError').style.display='none';document.getElementById('loginPass').value='';document.getElementById('loginModal').classList.add('show');setTimeout(()=>document.getElementById('loginPass').focus(),100)}
+function doLogin(){const u=document.getElementById('loginUser').value.trim(),p=document.getElementById('loginPass').value,saved=localStorage.getItem('admin_pass');if(!u||!p)return;if(!saved){localStorage.setItem('admin_user',btoa(u));localStorage.setItem('admin_pass',btoa(p));closeModal('loginModal');enterEditMode();return}if(btoa(u)===localStorage.getItem('admin_user')&&btoa(p)===saved){closeModal('loginModal');enterEditMode()}else{document.getElementById('loginError').style.display='block'}}
+function enterEditMode(){isEditMode=true;document.body.classList.add('edit-mode');renderSidebar();renderMain()}
+function exitEditMode(){isEditMode=false;document.body.classList.remove('edit-mode');renderSidebar();renderMain()}
+
+function addCategory(){editingCatId=null;document.getElementById('catModalTitle').textContent='添加分类';document.getElementById('catNameInput').value='';document.getElementById('catIconInput').value='📁';document.getElementById('catModal').classList.add('show')}
+function editCategory(id){editingCatId=id;const cat=categories.find(c=>c.id===id);if(!cat)return;document.getElementById('catModalTitle').textContent='编辑分类';document.getElementById('catNameInput').value=cat.name;document.getElementById('catIconInput').value=cat.icon;document.getElementById('catModal').classList.add('show')}
+function saveCategory(){const name=document.getElementById('catNameInput').value.trim(),icon=document.getElementById('catIconInput').value.trim()||'📁';if(!name)return alert('请输入分类名称');if(editingCatId){const cat=categories.find(c=>c.id===editingCatId);if(cat){cat.name=name;cat.icon=icon}}else{categories.push({id:'cat_'+Date.now(),name,icon,links:[]})}saveData();closeModal('catModal');renderSidebar()}
+function deleteCategory(id){if(!confirm('确定要删除这个分类吗？分类下的所有链接也会被删除。'))return;categories=categories.filter(c=>c.id!==id);if(activeCategory===id)activeCategory=null;saveData();renderSidebar();renderMain()}
+
+function addLink(){if(!activeCategory)return;editingLinkIdx=null;document.getElementById('linkModalTitle').textContent='添加链接';document.getElementById('linkNameInput').value='';document.getElementById('linkDescInput').value='';document.getElementById('linkUrlInput').value='';document.getElementById('linkIconInput').value='🔗';document.getElementById('linkColorInput').value='#e3f2fd';document.getElementById('linkModal').classList.add('show')}
+function editLink(idx){if(!activeCategory)return;const cat=categories.find(c=>c.id===activeCategory);if(!cat||!cat.links[idx])return;const link=cat.links[idx];editingLinkIdx=idx;document.getElementById('linkModalTitle').textContent='编辑链接';document.getElementById('linkNameInput').value=link.name;document.getElementById('linkDescInput').value=link.desc;document.getElementById('linkUrlInput').value=link.url;document.getElementById('linkIconInput').value=link.icon;document.getElementById('linkColorInput').value=link.color||'#e3f2fd';document.getElementById('linkModal').classList.add('show')}
+function saveLink(){const name=document.getElementById('linkNameInput').value.trim(),desc=document.getElementById('linkDescInput').value.trim();let url=document.getElementById('linkUrlInput').value.trim();const icon=document.getElementById('linkIconInput').value.trim()||'🔗',color=document.getElementById('linkColorInput').value;if(!name||!url)return alert('名称和网址不能为空');if(!url.startsWith('http'))url='https://'+url;const cat=categories.find(c=>c.id===activeCategory);if(!cat)return;if(editingLinkIdx!==null&&cat.links[editingLinkIdx]){cat.links[editingLinkIdx]={name,desc,url,icon,color}}else{cat.links.push({name,desc,url,icon,color})}saveData();closeModal('linkModal');renderSidebar();renderMain()}
+function deleteLink(idx){if(!confirm('确定要删除这个链接吗？'))return;const cat=categories.find(c=>c.id===activeCategory);if(cat){cat.links.splice(idx,1);saveData();renderSidebar();renderMain()}}
+
+function closeModal(id){document.getElementById(id).classList.remove('show')}
+function toggleTheme(){const html=document.documentElement,btn=document.getElementById('themeBtn');if(html.dataset.theme==='dark'){delete html.dataset.theme;btn.textContent='🌙';localStorage.setItem('theme','light')}else{html.dataset.theme='dark';btn.textContent='☀️';localStorage.setItem('theme','dark')}}
+function restoreTheme(){if(localStorage.getItem('theme')==='dark'){document.documentElement.dataset.theme='dark';document.getElementById('themeBtn').textContent='☀️'}}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open')}
+
+// ===================== 导出功能 =====================
+async function exportHTML() {
+    saveData();
+    try {
+        // 尝试通过 fetch 获取当前文件原始源码
+        const response = await fetch(location.href);
+        if (!response.ok) throw new Error('fetch failed');
+        let html = await response.text();
+
+        // 替换 DEFAULT_CATEGORIES 数据部分
+        const dataStr = JSON.stringify(categories, null, 1).replace(/\n/g, '\n');
+        const newDataBlock = 'const DEFAULT_CATEGORIES = ' + dataStr + ';';
+
+        // 使用正则替换：找到 const DEFAULT_CATEGORIES = [...]; 这部分
+        html = html.replace(
+            /const DEFAULT_CATEGORIES =\s*\[[\s\S]*?\];\s*\/\/ =+\s*数据结束\s*=+/,
+            newDataBlock + '\n// ===================== 数据结束 ====================='
+        );
+
+        // 下载
+        const blob = new Blob([html], { type: 'text/html' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'index.html';
+        a.click();
+        URL.revokeObjectURL(a.href);
+    } catch (e) {
+        // 如果 fetch 失败（如本地 file:// 打开），提示用户
+        alert('导出需要网页通过服务器访问。\n\n如果你是在本地双击打开的文件，请：\n1. 先把网站部署到 GitHub Pages\n2. 然后在网页上点击导出\n\n或者，你可以直接复制浏览器中修改后的数据给我，我帮你生成新文件。');
+    }
+}
+
+init();
+</script>
+</body>
+</html>
